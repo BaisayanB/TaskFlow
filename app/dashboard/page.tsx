@@ -1,7 +1,6 @@
 "use client";
 
 import Navbar from "@/components/navbar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,13 +22,12 @@ import { Board } from "@/lib/supabase/models";
 import { useUser } from "@clerk/nextjs";
 import {
   Filter,
-  Grid3x3,
-  List,
   Plus,
   CheckCircle,
   Search,
   ListChecks,
   Clock,
+  MoreVertical,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -37,7 +35,6 @@ import { useState } from "react";
 export default function DashboardPage() {
   const { user } = useUser();
   const { createBoard, boards, error } = useBoards();
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
 
   const [filters, setFilters] = useState({
@@ -233,34 +230,34 @@ export default function DashboardPage() {
           {/* Boards Grid/List */}
           {boards.length === 0 ? (
             <div>No boards yet</div>
-          ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredBoards.map((board, key) => (
                 <Link href={`/boards/${board.id}`} key={key}>
-                  <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-                    <CardHeader className="pb-3">
+                  <Card className="hover:shadow-lg hover:shadow-purple-200 transition-shadow cursor-pointer group border-2 border-purple-300">
+                    <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
-                        <div className={`w-4 h-4 ${board.color} rounded`} />
-                        <Badge className="text-xs" variant="secondary">
-                          New
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-4 h-4 ${board.color} rounded`} />
+                          <CardTitle className="text-base sm:text-lg text-purple-600 truncate">
+                            {board.title}
+                          </CardTitle>
+                        </div>
+                        <Button variant="ghost" size="sm" className="shrink-0 rounded-full hover:bg-purple-100">
+                          <MoreVertical className="text-purple-600"/>
+                        </Button>
                       </div>
                     </CardHeader>
                     <CardContent className="p-4 sm:p-6">
-                      <CardTitle className="text-base sm:text-lg mb-2 group-hover:text-blue-600 transition-colors">
-                        {board.title}
-                      </CardTitle>
-                      <CardDescription className="text-sm mb-4">
+                      <CardDescription className="text-md mb-4 line-clamp-2 text-purple-500">
                         {board.description}
                       </CardDescription>
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 space-y-1 sm:space-y-0">
+                        <span>12 Tasks • 5 Completed</span>
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 space-y-1 sm:space-y-0">
                         <span>
-                          Created{" "}
-                          {new Date(board.created_at).toLocaleDateString()}
-                        </span>
-                        <span>
-                          Updated{" "}
-                          {new Date(board.updated_at).toLocaleDateString()}
+                          Updated {new Date(board.updated_at).toLocaleDateString()}
                         </span>
                       </div>
                     </CardContent>
@@ -269,52 +266,6 @@ export default function DashboardPage() {
               ))}
 
               <Card className="border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer group">
-                <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-[200px]">
-                  <Plus className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 group-hover:text-blue-600 mb-2" />
-                  <p className="text-sm sm:text-base text-gray-600 group-hover:text-blue-600 font-medium">
-                    Create new board
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            <div>
-              {boards.map((board, key) => (
-                <div key={key} className={key > 0 ? "mt-4" : ""}>
-                  <Link href={`/boards/${board.id}`}>
-                    <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <div className={`w-4 h-4 ${board.color} rounded`} />
-                          <Badge className="text-xs" variant="secondary">
-                            New
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-4 sm:p-6">
-                        <CardTitle className="text-base sm:text-lg mb-2 group-hover:text-blue-600 transition-colors">
-                          {board.title}
-                        </CardTitle>
-                        <CardDescription className="text-sm mb-4">
-                          {board.description}
-                        </CardDescription>
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-gray-500 space-y-1 sm:space-y-0">
-                          <span>
-                            Created
-                            {new Date(board.created_at).toLocaleDateString()}
-                          </span>
-                          <span>
-                            Updated
-                            {new Date(board.updated_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </div>
-              ))}
-
-              <Card className="mt-4 border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors cursor-pointer group">
                 <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full min-h-[200px]">
                   <Plus className="h-6 w-6 sm:h-8 sm:w-8 text-gray-400 group-hover:text-blue-600 mb-2" />
                   <p className="text-sm sm:text-base text-gray-600 group-hover:text-blue-600 font-medium">
