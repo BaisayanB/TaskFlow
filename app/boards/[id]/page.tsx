@@ -546,7 +546,7 @@ export default function BoardPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-fixed bg-radial from-white to-purple-100">
+      <div className="min-h-screen bg-fixed bg-radial from-white to-purple-50">
         <Navbar
           boardTitle={board?.title}
           onEditBoard={() => {
@@ -691,16 +691,17 @@ export default function BoardPage() {
         {/* Board Content */}
         <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
           {/* Stats and add column button */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
+          <div className="flex flex-row items-center justify-between mb-6">
             <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-purple-600">
                 <span className="font-medium">Total Tasks: </span>
                 {columns.reduce((sum, col) => sum + col.tasks.length, 0)}
               </div>
             </div>
             <Button
-              variant="outline"
-              className=""
+              variant="ghost"
+              size="sm"
+              className="border-2 bg-white border-purple-500 text-purple-500 hover:bg-purple-100 hover:border-purple-600 hover:text-purple-600"
               onClick={() => setIsCreatingColumn(true)}
             >
               <Plus />
@@ -718,8 +719,7 @@ export default function BoardPage() {
           >
             <div
               className="flex flex-col gap-4 md:gap-6 md:items-center lg:items-start lg:flex-row lg:gap-6 lg:overflow-x-auto lg:pb-6 lg:px-2 lg:-mx-2 
-              lg:[&::-webkit-scrollbar]:h-2 lg:[&::-webkit-scrollbar-track]:bg-white lg:[&::-webkit-scrollbar-track]:rounded-full
-            lg:[&::-webkit-scrollbar-thumb]:bg-purple-300 lg:[&::-webkit-scrollbar-thumb]:rounded-full"
+              lg:[&::-webkit-scrollbar]:h-2 lg:[&::-webkit-scrollbar-track]:bg-white lg:[&::-webkit-scrollbar-thumb]:bg-purple-300 lg:[&::-webkit-scrollbar-thumb]:rounded-full"
             >
               {filteredColumns.map((column, key) => (
                 <DroppableColumn
@@ -732,7 +732,7 @@ export default function BoardPage() {
                     items={column.tasks.map((task) => task.id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {column.tasks.map((task, key) => (
                         <SortableTask task={task} key={key} />
                       ))}

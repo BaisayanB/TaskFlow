@@ -1,6 +1,6 @@
 "use client";
 
-import { SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
+import { SignUpButton, useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,10 +10,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  CheckSquare,
-  Users,
-  Zap,
-  Shield,
+  LayoutDashboard,
+  SearchCheck,
+  ArrowLeftRight,
+  ShieldCheck,
   ArrowRight,
   Medal,
 } from "lucide-react";
@@ -23,29 +23,29 @@ import Navbar from "@/components/navbar";
 
 export default function HomePage() {
 
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn } = useUser();
 
   const features = [
     {
-      icon: CheckSquare,
+      icon: LayoutDashboard,
       title: "Visually Interactive Boards",
       description:
         "Create unlimited boards. Structure your workflow the way you work - simple, flexible, and designed for clarity.",
     },
     {
-      icon: Users,
+      icon: SearchCheck,
       title: "Smart Search, Filters & Analytics",
       description:
         "Find tasks instantly using search and advanced filtering. View analytics to understand progress & stay productive.",
     },
     {
-      icon: Zap,
+      icon: ArrowLeftRight,
       title: "Drag-and-Drop with Custom Columns",
       description:
         "Move tasks between stages, reorder them with ease, rename them and create as many workflow steps needed.",
     },
     {
-      icon: Shield,
+      icon: ShieldCheck,
       title: "Secure & Reliable with Realtime Updates",
       description:
         "Enterprise-grade security to protect your data with instantaneous realtime-sync to keep you updated.",
@@ -53,7 +53,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-radial from-white to-purple-100">
+    <div className="min-h-screen bg-radial from-white to-purple-50">
       <Navbar />
 
       {/* Hero Section */}
@@ -136,7 +136,7 @@ export default function HomePage() {
           {features.map((feature, index) => (
             <Card
               key={index}
-              className="border-0 shadow-lg hover:shadow-xl gap-6 transition-shadow"
+              className="border border-purple-300 shadow-lg shadow-purple-200 hover:shadow-xl gap-6 transition-shadow"
             >
               <CardHeader className="text-center">
                 <div className="mx-auto w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">

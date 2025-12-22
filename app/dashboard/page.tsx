@@ -96,7 +96,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="bg-fixed min-h-screen bg-radial from-white to-purple-100">
+    <div className="bg-fixed min-h-screen bg-radial from-white to-purple-50">
       <Navbar />
 
       <main className="container mx-auto px-4 py-6 sm:py-8">
