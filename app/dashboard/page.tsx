@@ -32,7 +32,8 @@ import { useState } from "react";
 export default function DashboardPage() {
   const { user } = useUser();
   const { createBoard, boards, error } = useBoards();
-  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const [filters, setFilters] = useState({
     search: "",
@@ -40,6 +41,11 @@ export default function DashboardPage() {
       start: null as string | null,
       end: null as string | null,
     },
+  });
+
+  const [newBoard, setNewBoard] = useState({
+    title: "",
+    description: "",
   });
 
   const filteredBoards = boards.filter((board: Board) => {
@@ -77,6 +83,14 @@ export default function DashboardPage() {
   const handleCreateBoard = async () => {
     await createBoard({ title: "New Board" });
   };
+
+  // if (loading) {
+  //   return (
+  //     <div>
+  //       Loading boards...
+  //     </div>
+  //   )
+  // }
 
   if (error) {
     return (
@@ -118,7 +132,7 @@ export default function DashboardPage() {
               </Button>
 
               <Button
-                onClick={handleCreateBoard}
+                onClick={() => setIsCreateOpen(true)}
                 size="lg"
                 className="bg-purple-500 hover:bg-purple-600"
               >
@@ -202,7 +216,7 @@ export default function DashboardPage() {
           <DialogHeader>
             <DialogTitle className="text-purple-700">Filter Boards</DialogTitle>
             <p className="text-sm text-purple-600">
-              Filter boards by title, last updated date, or task count.
+              Filter boards by title or last updated date.
             </p>
           </DialogHeader>
           <div className="space-y-4">
@@ -221,10 +235,10 @@ export default function DashboardPage() {
 
             {/* Search by date */}
             <div className="space-y-2">
-              <Label className="text-purple-700">Date Range</Label>
+              <Label className="text-purple-700 pb-1">Date Range</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label className="text-xs text-purple-700">Start Date</Label>
+                  <Label className="text-xs text-purple-700 pl-1">Start Date</Label>
                   <Input
                     type="date"
                     className="border-purple-300 bg-white text-purple-600 focus-visible:ring-purple-200 focus-visible:border-purple-300"
@@ -240,7 +254,7 @@ export default function DashboardPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-purple-700">End Date</Label>
+                  <Label className="text-xs text-purple-700 pl-1">End Date</Label>
                   <Input
                     type="date"
                     className="border-purple-300 bg-white text-purple-600 focus-visible:ring-purple-200 focus-visible:border-purple-300"
@@ -276,6 +290,11 @@ export default function DashboardPage() {
             </div>
           </div>
         </DialogContent>
+      </Dialog>
+
+      {/* Create Board Dialog */}
+      <Dialog>
+        
       </Dialog>
     </div>
   );
