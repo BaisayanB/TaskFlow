@@ -20,12 +20,7 @@ import { Label } from "@/components/ui/label";
 import { useBoards } from "@/lib/hooks/useBoards";
 import { Board } from "@/lib/supabase/models";
 import { useUser } from "@clerk/nextjs";
-import {
-  Filter,
-  Plus,
-  Search,
-  MoreVertical,
-} from "lucide-react";
+import { Filter, Plus, Search, MoreVertical } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -46,6 +41,7 @@ export default function DashboardPage() {
   const [newBoard, setNewBoard] = useState({
     title: "",
     description: "",
+    color: "bg-blue-500",
   });
 
   const filteredBoards = boards.filter((board: Board) => {
@@ -81,7 +77,20 @@ export default function DashboardPage() {
   }
 
   const handleCreateBoard = async () => {
-    await createBoard({ title: "New Board" });
+    if (!newBoard.title.trim()) return;
+
+    await createBoard({
+      title: newBoard.title.trim(),
+      description: newBoard.description.trim() || undefined,
+      color: newBoard.color,
+    });
+
+    setNewBoard({
+      title: "",
+      description: "",
+      color: "bg-blue-500",
+    });
+    setIsCreateOpen(false);
   };
 
   // if (loading) {
@@ -121,6 +130,7 @@ export default function DashboardPage() {
               </p>
             </div>
 
+            {/* Filter and create board button */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
               <Button
                 variant="ghost"
@@ -195,7 +205,11 @@ export default function DashboardPage() {
                 </Link>
               ))}
 
-              <Card className="border border-purple-300 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-200 transition-colors cursor-pointer group">
+              {/* Create new board card */}
+              <Card
+                onClick={() => setIsCreateOpen(true)}
+                className="border border-purple-300 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-200 transition-colors cursor-pointer group"
+              >
                 <CardContent className="p-4 sm:p-6 flex flex-col items-center justify-center h-full">
                   <Plus className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 mb-2" />
                   <p className="text-sm sm:text-base text-purple-600 font-medium">
@@ -210,15 +224,14 @@ export default function DashboardPage() {
 
       {/* Filter Dialog */}
       <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-        <DialogContent
-          className="w-[95vw] max-w-[425px] mx-auto border-2 border-purple-300 bg-purple-50 [&>button]:text-purple-600 [&>button:hover]:text-purple-700 [&>button:hover]:bg-purple-100 [&>button]:rounded-md"
-        >
+        <DialogContent className="w-[95vw] max-w-[425px] mx-auto border-2 border-purple-300 bg-purple-50 [&>button]:text-purple-600 [&>button:hover]:text-purple-700 [&>button:hover]:bg-purple-100 [&>button]:rounded-md">
           <DialogHeader>
             <DialogTitle className="text-purple-700">Filter Boards</DialogTitle>
             <p className="text-sm text-purple-600">
               Filter boards by title or last updated date.
             </p>
           </DialogHeader>
+
           <div className="space-y-4">
             {/* Search by title */}
             <div className="space-y-2">
@@ -238,7 +251,9 @@ export default function DashboardPage() {
               <Label className="text-purple-700 pb-1">Date Range</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <Label className="text-xs text-purple-700 pl-1">Start Date</Label>
+                  <Label className="text-xs text-purple-700 pl-1">
+                    Start Date
+                  </Label>
                   <Input
                     type="date"
                     className="border-purple-300 bg-white text-purple-600 focus-visible:ring-purple-200 focus-visible:border-purple-300"
@@ -254,7 +269,9 @@ export default function DashboardPage() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-purple-700 pl-1">End Date</Label>
+                  <Label className="text-xs text-purple-700 pl-1">
+                    End Date
+                  </Label>
                   <Input
                     type="date"
                     className="border-purple-300 bg-white text-purple-600 focus-visible:ring-purple-200 focus-visible:border-purple-300"
@@ -271,7 +288,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Buttons apply n clear */}
             <div className="flex flex-col sm:flex-row justify-between pt-4 gap-2">
               <Button
@@ -293,8 +310,97 @@ export default function DashboardPage() {
       </Dialog>
 
       {/* Create Board Dialog */}
-      <Dialog>
-        
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="w-[95vw] max-w-[425px] mx-auto border-2 border-purple-300 bg-purple-50 [&>button]:text-purple-600 [&>button:hover]:text-purple-700 [&>button:hover]:bg-purple-100 [&>button]:rounded-md">
+          <DialogHeader>
+            <DialogTitle className="text-purple-700">
+              Create new board
+            </DialogTitle>
+            <p className="text-sm text-purple-600">
+              Create a new board to manage your tasks.
+            </p>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Title */}
+            <div className="space-y-2">
+              <Label className="text-purple-700">Title</Label>
+              <Input
+                placeholder="e.g. First Project"
+                value={newBoard.title}
+                className="border-purple-300 bg-white text-purple-600 placeholder:text-purple-500 focus-visible:ring-purple-200 focus-visible:border-purple-300"
+                onChange={(e) =>
+                  setNewBoard((prev) => ({
+                    ...prev,
+                    title: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label className="text-purple-700">Description</Label>
+              <Input
+                placeholder="Optional"
+                value={newBoard.description}
+                className="border-purple-300 bg-white text-purple-600 placeholder:text-purple-500 focus-visible:ring-purple-200 focus-visible:border-purple-300"
+                onChange={(e) =>
+                  setNewBoard((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            {/* Board color */}
+            <div className="space-y-2">
+              <Label className="text-purple-700">Color</Label>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  "bg-blue-500",
+                  "bg-green-500",
+                  "bg-yellow-500",
+                  "bg-red-500",
+                  "bg-purple-500",
+                  "bg-pink-500",
+                  "bg-orange-500",
+                  "bg-cyan-500",
+                ].map((color) => (
+                  <button
+                    type="button"
+                    key={color}
+                    onClick={() => setNewBoard((prev) => ({ ...prev, color }))}
+                    className={`w-8 h-8 rounded-full ${color} ${
+                      newBoard.color === color
+                        ? "ring-2 ring-offset-2 ring-purple-600"
+                        : ""
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row justify-between pt-4 gap-2">
+              <Button
+                variant="ghost"
+                onClick={() => setIsCreateOpen(false)}
+                className="border border-purple-300 text-purple-500 bg-white hover:bg-purple-100 hover:border-purple-600 hover:text-purple-600"
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-purple-500 hover:bg-purple-600"
+                onClick={handleCreateBoard}
+                disabled={!newBoard.title.trim()}
+              >
+                Create board
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
       </Dialog>
     </div>
   );
