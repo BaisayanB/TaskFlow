@@ -431,7 +431,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-between pt-4 gap-2">
+            <div className="flex flex-col sm:flex-row justify-end pt-4 gap-2">
               <Button
                 type="button"
                 variant="ghost"
@@ -526,7 +526,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-between pt-4 gap-2">
+            <div className="flex flex-col sm:flex-row justify-end pt-4 gap-2">
               <Button
                 type="button"
                 variant="ghost"

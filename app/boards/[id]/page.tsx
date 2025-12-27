@@ -309,7 +309,6 @@ export default function BoardPage() {
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-  const [newColor, setNewColor] = useState("");
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCreatingColumn, setIsCreatingColumn] = useState(false);
@@ -361,7 +360,6 @@ export default function BoardPage() {
     try {
       await updateBoard(board.id, {
         title: newTitle.trim(),
-        color: newColor || board.color,
       });
       setIsEditingTitle(false);
     } catch {}
@@ -515,7 +513,6 @@ export default function BoardPage() {
           boardTitle={board?.title}
           onEditBoard={() => {
             setNewTitle(board?.title ?? "");
-            setNewColor(board?.color ?? "");
             setIsEditingTitle(true);
           }}
           onFilterClick={() => setIsFilterOpen(true)}
@@ -525,128 +522,6 @@ export default function BoardPage() {
             0
           )}
         />
-
-        <Dialog open={isEditingTitle} onOpenChange={setIsEditingTitle}>
-          <DialogContent className="w-[95vw] max-w-[425px] mx-auto border-2 border-purple-300 bg-purple-50 [&>button]:rounded-md">
-            <DialogHeader>
-              <DialogTitle className="text-purple-700">Edit Board</DialogTitle>
-            </DialogHeader>
-            <form className="space-y-4" onSubmit={handleUpdateBoard}>
-              <div className="space-y-2">
-                <Label htmlFor="boardTitle">Title</Label>
-                <Input
-                  id="boardTitle"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  placeholder="Enter board title..."
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Board Color</Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {[
-                    "bg-blue-500",
-                    "bg-green-500",
-                    "bg-yellow-500",
-                    "bg-red-500",
-                    "bg-purple-500",
-                    "bg-pink-500",
-                    "bg-orange-500",
-                    "bg-cyan-500",
-                  ].map((color, key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className={`w-8 h-8 rounded-full ${color} ${
-                        color === newColor
-                          ? "ring-2 ring-offset-2 ring-gray-900"
-                          : ""
-                      } `}
-                      onClick={() => setNewColor(color)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsEditingTitle(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit">Save Changes</Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-          <DialogContent className="w-[95vw] max-w-[425px] mx-auto">
-            <DialogHeader>
-              <DialogTitle>Filter Tasks</DialogTitle>
-              <p className="text-sm text-gray-600">
-                Filter tasks by priority or due date
-              </p>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Priority</Label>
-                <div className="flex flex-wrap gap-2">
-                  {["low", "medium", "high"].map((priority, key) => (
-                    <Button
-                      onClick={() => {
-                        const newPriorities = filters.priority.includes(
-                          priority
-                        )
-                          ? filters.priority.filter((p) => p !== priority)
-                          : [...filters.priority, priority];
-
-                        handleFilterChange("priority", newPriorities);
-                      }}
-                      key={key}
-                      variant={
-                        filters.priority.includes(priority)
-                          ? "default"
-                          : "outline"
-                      }
-                      size="sm"
-                    >
-                      {priority.charAt(0).toUpperCase() + priority.slice(1)}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Due Date</Label>
-                <Input
-                  type="date"
-                  value={filters.dueDate || ""}
-                  onChange={(e) =>
-                    handleFilterChange("dueDate", e.target.value || null)
-                  }
-                />
-              </div>
-
-              <div className="flex justify-between pt-4">
-                <Button
-                  type="button"
-                  variant={"outline"}
-                  onClick={clearFilters}
-                >
-                  Clear Filters
-                </Button>
-                <Button type="button" onClick={() => setIsFilterOpen(false)}>
-                  Apply Filters
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Board Content */}
         <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
@@ -709,7 +584,105 @@ export default function BoardPage() {
         </main>
       </div>
 
-      {/* Add column button */}
+      <Dialog open={isEditingTitle} onOpenChange={setIsEditingTitle}>
+        <DialogContent className="w-[95vw] max-w-[425px] mx-auto border-2 border-purple-300 bg-purple-50 [&>button]:rounded-md">
+          <DialogHeader>
+            <DialogTitle className="text-purple-700">Edit Board</DialogTitle>
+          </DialogHeader>
+
+          <form className="space-y-4" onSubmit={handleUpdateBoard}>
+            <div className="space-y-2">
+              <Label htmlFor="boardTitle" className="text-purple-700">
+                Title
+              </Label>
+              <Input
+                id="boardTitle"
+                value={newTitle}
+                className="border-purple-300 bg-white text-purple-600 placeholder:text-purple-500 focus-visible:ring-purple-200 focus-visible:border-purple-300"
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Enter board title..."
+                required
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row justify-end pt-4 gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                className="border border-purple-300 text-purple-500 bg-white hover:bg-purple-100 hover:border-purple-600 hover:text-purple-600"
+                onClick={() => setIsEditingTitle(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="bg-purple-500 hover:bg-purple-600"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <DialogContent className="w-[95vw] max-w-[425px] mx-auto">
+          <DialogHeader>
+            <DialogTitle>Filter Tasks</DialogTitle>
+            <p className="text-sm text-gray-600">
+              Filter tasks by priority or due date
+            </p>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Priority</Label>
+              <div className="flex flex-wrap gap-2">
+                {["low", "medium", "high"].map((priority, key) => (
+                  <Button
+                    onClick={() => {
+                      const newPriorities = filters.priority.includes(priority)
+                        ? filters.priority.filter((p) => p !== priority)
+                        : [...filters.priority, priority];
+
+                      handleFilterChange("priority", newPriorities);
+                    }}
+                    key={key}
+                    variant={
+                      filters.priority.includes(priority)
+                        ? "default"
+                        : "outline"
+                    }
+                    size="sm"
+                  >
+                    {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Due Date</Label>
+              <Input
+                type="date"
+                value={filters.dueDate || ""}
+                onChange={(e) =>
+                  handleFilterChange("dueDate", e.target.value || null)
+                }
+              />
+            </div>
+
+            <div className="flex justify-between pt-4">
+              <Button type="button" variant={"outline"} onClick={clearFilters}>
+                Clear Filters
+              </Button>
+              <Button type="button" onClick={() => setIsFilterOpen(false)}>
+                Apply Filters
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isCreatingColumn} onOpenChange={setIsCreatingColumn}>
         <DialogContent className="w-[95vw] max-w-[425px] mx-auto">
           <DialogHeader>
@@ -743,7 +716,6 @@ export default function BoardPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Column edit button */}
       <Dialog open={isEditingColumn} onOpenChange={setIsEditingColumn}>
         <DialogContent className="w-[95vw] max-w-[425px] mx-auto">
           <DialogHeader>
