@@ -189,18 +189,12 @@ function SortableTask({ task }: { task: Task }) {
     opacity: isDragging ? 0.3 : 1,
   };
 
-  function getPriorityColor(priority: "low" | "medium" | "high"): string {
-    switch (priority) {
-      case "high":
-        return "bg-red-500";
-      case "medium":
-        return "bg-yellow-500";
-      case "low":
-        return "bg-green-500";
-      default:
-        return "bg-yellow-500";
-    }
-  }
+  const PRIORITY_COLOR_MAP: Record<Task["priority"], string> = {
+    low: "bg-green-500",
+    medium: "bg-yellow-500",
+    high: "bg-red-500",
+  };
+  const isOverdue = task.due_date && new Date(task.due_date) < new Date();
 
   return (
     <div ref={setNodeRef} style={styles} {...listeners} {...attributes}>
@@ -215,24 +209,34 @@ function SortableTask({ task }: { task: Task }) {
             </div>
 
             {/* Task Description */}
-            <p className="text-xs text-gray-600">
-              {task.description || "No description."}
-            </p>
+            {task.description && (
+              <p className="text-xs text-gray-600">{task.description}</p>
+            )}
 
             {/* Task Meta */}
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
                 {task.due_date && (
                   <div className="flex items-center space-x-1 text-xs text-gray-500">
-                    <Calendar className="h-3 w-3" />
-                    <span className="truncate">{task.due_date}</span>
+                    <Calendar
+                      className={`h-3 w-3 ${
+                        isOverdue ? "text-red-500 font-medium" : ""
+                      }`}
+                    />
+                    <span
+                      className={`truncate ${
+                        isOverdue ? "text-red-500 font-medium" : ""
+                      }`}
+                    >
+                      {task.due_date}
+                    </span>
                   </div>
                 )}
               </div>
               <div
-                className={`w-3 h-3 mr-2 rounded-full shrink-0 ${getPriorityColor(
-                  task.priority
-                )}`}
+                className={`w-3 h-3 mr-3 rounded-full shrink-0 ${
+                  PRIORITY_COLOR_MAP[task.priority]
+                }`}
               />
             </div>
           </div>
@@ -243,18 +247,12 @@ function SortableTask({ task }: { task: Task }) {
 }
 
 function TaskOverlay({ task }: { task: Task }) {
-  function getPriorityColor(priority: "low" | "medium" | "high"): string {
-    switch (priority) {
-      case "high":
-        return "bg-red-500";
-      case "medium":
-        return "bg-yellow-500";
-      case "low":
-        return "bg-green-500";
-      default:
-        return "bg-yellow-500";
-    }
-  }
+  const PRIORITY_COLOR_MAP: Record<Task["priority"], string> = {
+    low: "bg-green-500",
+    medium: "bg-yellow-500",
+    high: "bg-red-500",
+  };
+  const isOverdue = task.due_date && new Date(task.due_date) < new Date();
 
   return (
     <Card className="cursor-pointer border-purple-300 hover:shadow-lg hover:shadow-purple-200 transition-shadow">
@@ -268,24 +266,34 @@ function TaskOverlay({ task }: { task: Task }) {
           </div>
 
           {/* Task Description */}
-          <p className="text-xs text-gray-600">
-            {task.description || "No description."}
-          </p>
+          {task.description && (
+            <p className="text-xs text-gray-600">{task.description}</p>
+          )}
 
           {/* Task Meta */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-1 sm:space-x-2 min-w-0">
               {task.due_date && (
                 <div className="flex items-center space-x-1 text-xs text-gray-500">
-                  <Calendar className="h-3 w-3" />
-                  <span className="truncate">{task.due_date}</span>
+                  <Calendar
+                    className={`h-3 w-3 ${
+                      isOverdue ? "text-red-500 font-medium" : ""
+                    }`}
+                  />
+                  <span
+                    className={`truncate ${
+                      isOverdue ? "text-red-500 font-medium" : ""
+                    }`}
+                  >
+                    {task.due_date}
+                  </span>
                 </div>
               )}
             </div>
             <div
-              className={`w-3 h-3 mr-2 rounded-full shrink-0 ${getPriorityColor(
-                task.priority
-              )}`}
+              className={`w-3 h-3 mr-3 rounded-full shrink-0 ${
+                PRIORITY_COLOR_MAP[task.priority]
+              }`}
             />
           </div>
         </div>
@@ -635,30 +643,42 @@ export default function BoardPage() {
             </p>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setIsFilterOpen(false);
+            }}
+          >
+            <div className="space-y-3">
               <Label className="text-purple-600">Priority</Label>
               <div className="flex flex-wrap gap-2">
-                {["low", "medium", "high"].map((priority, key) => (
-                  <Button
-                    onClick={() => {
-                      const newPriorities = filters.priority.includes(priority)
-                        ? filters.priority.filter((p) => p !== priority)
-                        : [...filters.priority, priority];
-
-                      handleFilterChange("priority", newPriorities);
-                    }}
-                    key={key}
-                    variant={
-                      filters.priority.includes(priority)
-                        ? "default"
-                        : "outline"
-                    }
-                    size="sm"
-                  >
-                    {priority.charAt(0).toUpperCase() + priority.slice(1)}
-                  </Button>
-                ))}
+                {(["low", "medium", "high"] as const).map((priority) => {
+                  const isActive = filters.priority.includes(priority);
+                  return (
+                    <Button
+                      key={priority}
+                      type="button"
+                      size="sm"
+                      variant={isActive ? "default" : "outline"}
+                      className={
+                        isActive
+                          ? "bg-purple-500 hover:bg-purple-600"
+                          : "border-purple-300 text-purple-500 bg-white hover:bg-purple-100 hover:border-purple-600 hover:text-purple-600"
+                      }
+                      onClick={() =>
+                        handleFilterChange(
+                          "priority",
+                          isActive
+                            ? filters.priority.filter((p) => p !== priority)
+                            : [...filters.priority, priority]
+                        )
+                      }
+                    >
+                      {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                    </Button>
+                  );
+                })}
               </div>
             </div>
 
@@ -677,21 +697,20 @@ export default function BoardPage() {
             <div className="flex flex-col sm:flex-row justify-end pt-4 gap-2">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 className="border border-purple-300 text-purple-500 bg-white hover:bg-purple-100 hover:border-purple-600 hover:text-purple-600"
                 onClick={clearFilters}
               >
                 Clear Filters
               </Button>
               <Button
-                type="button"
+                type="submit"
                 className="bg-purple-500 hover:bg-purple-600"
-                onClick={() => setIsFilterOpen(false)}
               >
                 Apply Filters
               </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
 
