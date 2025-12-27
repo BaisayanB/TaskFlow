@@ -53,7 +53,10 @@ function DroppableColumn({
 }: {
   column: ColumnWithTasks;
   children: React.ReactNode;
-  onCreateTask: (taskData: any) => Promise<void>;
+  onCreateTask: (
+    columnId: string,
+    e: React.FormEvent<HTMLFormElement>
+  ) => Promise<void>;
   onEditColumn: (column: ColumnWithTasks) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
@@ -114,7 +117,10 @@ function DroppableColumn({
                 <p className="text-sm text-gray-600">Add a task to the board</p>
               </DialogHeader>
 
-              <form className="space-y-4" onSubmit={onCreateTask}>
+              <form
+                className="space-y-4"
+                onSubmit={(e) => onCreateTask(column.id, e)}
+              >
                 <div className="space-y-2">
                   <Label>Title *</Label>
                   <Input
@@ -192,7 +198,7 @@ function SortableTask({ task }: { task: Task }) {
       case "low":
         return "bg-green-500";
       default:
-        return "bg-green-500";
+        return "bg-yellow-500";
     }
   }
 
@@ -246,9 +252,10 @@ function TaskOverlay({ task }: { task: Task }) {
       case "low":
         return "bg-green-500";
       default:
-        return "bg-green-500";
+        return "bg-yellow-500";
     }
   }
+
   return (
     <Card className="cursor-pointer border-purple-300 hover:shadow-lg hover:shadow-purple-200 transition-shadow">
       <CardContent className="p-4">
@@ -291,11 +298,11 @@ export default function BoardPage() {
   const { id } = useParams<{ id: string }>();
   const {
     board,
+    columns,
     createColumn,
     updateBoard,
-    columns,
-    createRealTask,
-    setColumns,
+    createTask,
+    reorderTask,
     moveTask,
     updateColumn,
   } = useBoard(id);
@@ -360,21 +367,10 @@ export default function BoardPage() {
     } catch {}
   }
 
-  async function createTask(taskData: {
-    title: string;
-    description?: string;
-    dueDate?: string;
-    priority: "low" | "medium" | "high";
-  }) {
-    const targetColumn = columns[0];
-    if (!targetColumn) {
-      throw new Error("No column available to add task");
-    }
-
-    await createRealTask(targetColumn.id, taskData);
-  }
-
-  async function handleCreateTask(e: any) {
+  async function handleCreateTask(
+    columnId: string,
+    e: React.FormEvent<HTMLFormElement>
+  ) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const taskData = {
@@ -382,17 +378,11 @@ export default function BoardPage() {
       description: (formData.get("description") as string) || undefined,
       dueDate: (formData.get("dueDate") as string) || undefined,
       priority:
-        (formData.get("priority") as "low" | "medium" | "high") || "low",
+        (formData.get("priority") as "low" | "medium" | "high") || "medium",
     };
 
-    if (taskData.title.trim()) {
-      await createTask(taskData);
-
-      const trigger = document.querySelector(
-        '[data-state="open"'
-      ) as HTMLElement;
-      if (trigger) trigger.click();
-    }
+    if (!taskData.title.trim()) return;
+    await createTask(columnId, taskData);
   }
 
   function handleDragStart(event: DragStartEvent) {
@@ -422,92 +412,66 @@ export default function BoardPage() {
     );
 
     if (!sourceColumn || !targetColumn) return;
+    if (sourceColumn.id !== targetColumn.id) return;
 
-    if (sourceColumn.id === targetColumn.id) {
-      const activeIndex = sourceColumn.tasks.findIndex(
-        (task) => task.id === activeId
-      );
+    const fromIndex = sourceColumn.tasks.findIndex(
+      (task) => task.id === activeId
+    );
 
-      const overIndex = targetColumn.tasks.findIndex(
-        (task) => task.id === overId
-      );
+    const toIndex = targetColumn.tasks.findIndex((task) => task.id === overId);
 
-      if (activeIndex !== overIndex) {
-        setColumns((prev: ColumnWithTasks[]) => {
-          const newColumns = [...prev];
-          const column = newColumns.find((col) => col.id === sourceColumn.id);
-          if (column) {
-            const tasks = [...column.tasks];
-            const [removed] = tasks.splice(activeIndex, 1);
-            tasks.splice(overIndex, 0, removed);
-            column.tasks = tasks;
-          }
-          return newColumns;
-        });
-      }
+    if (fromIndex !== toIndex) {
+      reorderTask(sourceColumn.id, fromIndex, toIndex);
     }
   }
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over) return;
-
     const taskId = active.id as string;
     const overId = over.id as string;
 
-    const targetColumn = columns.find((col) => col.id === overId);
-    if (targetColumn) {
-      const sourceColumn = columns.find((col) =>
-        col.tasks.some((task) => task.id === taskId)
+    // Source column
+    const sourceColumn = columns.find((col) =>
+      col.tasks.some((task) => task.id === taskId)
+    );
+    if (!sourceColumn) return;
+
+    // Dropped on column
+    const targetColumnById = columns.find((col) => col.id === overId);
+    if (targetColumnById && sourceColumn.id !== targetColumnById.id) {
+      await moveTask(
+        taskId,
+        targetColumnById.id,
+        targetColumnById.tasks.length
       );
-
-      if (sourceColumn && sourceColumn.id !== targetColumn.id) {
-        await moveTask(taskId, targetColumn.id, targetColumn.tasks.length);
-      }
-    } else {
-      // Check to see if were dropping on another task
-      const sourceColumn = columns.find((col) =>
-        col.tasks.some((task) => task.id === taskId)
-      );
-
-      const targetColumn = columns.find((col) =>
-        col.tasks.some((task) => task.id === overId)
-      );
-
-      if (sourceColumn && targetColumn) {
-        const oldIndex = sourceColumn.tasks.findIndex(
-          (task) => task.id === taskId
-        );
-
-        const newIndex = targetColumn.tasks.findIndex(
-          (task) => task.id === overId
-        );
-
-        if (oldIndex !== newIndex) {
-          await moveTask(taskId, targetColumn.id, newIndex);
-        }
-      }
+      return;
     }
+
+    // Dropped on task
+    const targetColumn = columns.find((col) =>
+      col.tasks.some((task) => task.id === overId)
+    );
+
+    if (!targetColumn) return;
+    const oldIndex = sourceColumn.tasks.findIndex((task) => task.id === taskId);
+    const newIndex = targetColumn.tasks.findIndex((task) => task.id === overId);
+    if (oldIndex === -1 || newIndex === -1) return;
+    await moveTask(taskId, targetColumn.id, newIndex);
   }
 
   async function handleCreateColumn(e: React.FormEvent) {
     e.preventDefault();
-
     if (!newColumnTitle.trim()) return;
-
     await createColumn(newColumnTitle.trim());
-
     setNewColumnTitle("");
     setIsCreatingColumn(false);
   }
 
   async function handleUpdateColumn(e: React.FormEvent) {
     e.preventDefault();
-
     if (!editingColumnTitle.trim() || !editingColumn) return;
-
     await updateColumn(editingColumn.id, editingColumnTitle.trim());
-
     setEditingColumnTitle("");
     setIsEditingColumn(false);
     setEditingColumn(null);
@@ -705,7 +669,7 @@ export default function BoardPage() {
             </Button>
           </div>
 
-          {/* Board Columns */}
+          {/* Columns */}
           <DndContext
             sensors={sensors}
             collisionDetection={rectIntersection}
@@ -717,9 +681,9 @@ export default function BoardPage() {
               className="flex flex-col gap-4 md:gap-6 md:items-center lg:items-start lg:flex-row lg:gap-6 lg:overflow-x-auto lg:pb-6 lg:px-2 lg:-mx-2 
               lg:[&::-webkit-scrollbar]:h-2 lg:[&::-webkit-scrollbar-track]:bg-white lg:[&::-webkit-scrollbar-thumb]:bg-purple-300 lg:[&::-webkit-scrollbar-thumb]:rounded-full"
             >
-              {filteredColumns.map((column, key) => (
+              {filteredColumns.map((column) => (
                 <DroppableColumn
-                  key={key}
+                  key={column.id}
                   column={column}
                   onCreateTask={handleCreateTask}
                   onEditColumn={handleEditColumn}
@@ -729,8 +693,8 @@ export default function BoardPage() {
                     strategy={verticalListSortingStrategy}
                   >
                     <div className="space-y-4">
-                      {column.tasks.map((task, key) => (
-                        <SortableTask task={task} key={key} />
+                      {column.tasks.map((task) => (
+                        <SortableTask task={task} key={task.id} />
                       ))}
                     </div>
                   </SortableContext>

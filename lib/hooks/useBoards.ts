@@ -94,14 +94,14 @@ export function useBoards() {
   return { boards, loading, error, createBoard, updateBoard, deleteBoard };
 }
 
-
 // Fetches single board and deals with columns, tasks and internal stuffs used in boards page
-export function useBoard(boardId: string) { 
+export function useBoard(boardId: string) {
   const { supabase } = useSupabase();
   const { user } = useUser();
+
   const [board, setBoard] = useState<Board | null>(null);
   const [columns, setColumns] = useState<ColumnWithTasks[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -123,10 +123,7 @@ export function useBoard(boardId: string) {
         setLoading(false);
       }
     }
-
-    if (boardId) {
-      loadBoard();
-    }
+    loadBoard();
   }, [boardId, supabase]);
 
   async function updateBoard(
@@ -138,13 +135,13 @@ export function useBoard(boardId: string) {
     }
   ) {
     try {
-      const updatedBoard = await boardService.updateBoard(
+      const updated = await boardService.updateBoard(
         supabase!,
         boardId,
         updates
       );
-      setBoard(updatedBoard);
-      return updatedBoard;
+      setBoard(updated);
+      return updated;
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to update the board."
@@ -152,7 +149,7 @@ export function useBoard(boardId: string) {
     }
   }
 
-  async function createRealTask(
+  async function createTask(
     columnId: string,
     taskData: {
       title: string;
@@ -162,13 +159,15 @@ export function useBoard(boardId: string) {
     }
   ) {
     try {
+      const column = columns.find((c) => c.id === columnId);
+      if (!column) throw new Error("Column not found");
+
       const newTask = await taskService.createTask(supabase!, {
         title: taskData.title,
         description: taskData.description || null,
         due_date: taskData.dueDate || null,
         column_id: columnId,
-        sort_order:
-          columns.find((col) => col.id === columnId)?.tasks.length || 0,
+        sort_order: column.tasks.length,
         priority: taskData.priority || "medium",
       });
 
@@ -186,6 +185,20 @@ export function useBoard(boardId: string) {
     }
   }
 
+  function reorderTask(columnId: string, fromIndex: number, toIndex: number) {
+    setColumns((prev) =>
+      prev.map((col) => {
+        if (col.id !== columnId) return col;
+
+        const tasks = [...col.tasks];
+        const [moved] = tasks.splice(fromIndex, 1);
+        tasks.splice(toIndex, 0, moved);
+
+        return { ...col, tasks };
+      })
+    );
+  }
+
   async function moveTask(
     taskId: string,
     newColumnId: string,
@@ -195,28 +208,25 @@ export function useBoard(boardId: string) {
       await taskService.moveTask(supabase!, taskId, newColumnId, newOrder);
 
       setColumns((prev) => {
-        const newColumns = [...prev];
+        const next = structuredClone(prev);
 
-        // Find and remove task from the old column
-        let taskToMove: Task | null = null;
-        for (const col of newColumns) {
-          const taskIndex = col.tasks.findIndex((task) => task.id === taskId);
-          if (taskIndex !== -1) {
-            taskToMove = col.tasks[taskIndex];
-            col.tasks.splice(taskIndex, 1);
+        let movedTask: Task | null = null;
+        for (const col of next) {
+          const idx = col.tasks.findIndex((t) => t.id === taskId);
+          if (idx !== -1) {
+            movedTask = col.tasks.splice(idx, 1)[0];
             break;
           }
         }
 
-        if (taskToMove) {
-          // Add task to new column
-          const targetColumn = newColumns.find((col) => col.id === newColumnId);
-          if (targetColumn) {
-            targetColumn.tasks.splice(newOrder, 0, taskToMove);
-          }
+        if (movedTask) {
+          const target = next.find((c) => c.id === newColumnId);
+          if (target) {
+            target.tasks.splice(newOrder, 0, movedTask);
+          } 
         }
 
-        return newColumns;
+        return next;
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to move task.");
@@ -243,7 +253,7 @@ export function useBoard(boardId: string) {
 
   async function updateColumn(columnId: string, title: string) {
     try {
-      const updatedColumn = await columnService.updateColumnTitle(
+      const updated = await columnService.updateColumnTitle(
         supabase!,
         columnId,
         title
@@ -251,11 +261,11 @@ export function useBoard(boardId: string) {
 
       setColumns((prev) =>
         prev.map((col) =>
-          col.id === columnId ? { ...col, ...updatedColumn } : col
+          col.id === columnId ? { ...col, ...updated } : col
         )
       );
 
-      return updatedColumn;
+      return updated;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create column.");
     }
@@ -267,8 +277,8 @@ export function useBoard(boardId: string) {
     loading,
     error,
     updateBoard,
-    createRealTask,
-    setColumns,
+    createTask,
+    reorderTask,
     moveTask,
     createColumn,
     updateColumn,

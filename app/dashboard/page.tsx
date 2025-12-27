@@ -274,7 +274,6 @@ export default function DashboardPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Title */}
             <div className="space-y-2">
               <Label className="text-purple-700">Title</Label>
               <Input
@@ -286,7 +285,6 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Description */}
             <div className="space-y-2">
               <Label className="text-purple-700">Description</Label>
               <Input
@@ -298,7 +296,6 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Color */}
             <div className="space-y-2">
               <Label className="text-purple-700">Color</Label>
               <div className="grid grid-cols-4 gap-2 justify-items-center">
@@ -328,7 +325,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex flex-col sm:flex-row justify-between pt-4 gap-2">
               <Button variant="destructive" onClick={handleDeleteBoard}>
                 Delete board
@@ -364,7 +360,6 @@ export default function DashboardPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Search by title */}
             <div className="space-y-2">
               <Label className="text-purple-700">Search</Label>
               <Input
@@ -377,7 +372,6 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Search by date */}
             <div className="space-y-2">
               <Label className="text-purple-700 pb-1">Date Range</Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -452,7 +446,6 @@ export default function DashboardPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Title */}
             <div className="space-y-2">
               <Label className="text-purple-700">Title</Label>
               <Input
@@ -468,7 +461,6 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Description */}
             <div className="space-y-2">
               <Label className="text-purple-700">Description</Label>
               <Input
@@ -484,7 +476,6 @@ export default function DashboardPage() {
               />
             </div>
 
-            {/* Board color */}
             <div className="space-y-2">
               <Label className="text-purple-700">Color</Label>
               <div className="grid grid-cols-4 gap-2 justify-items-center">
@@ -512,7 +503,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex flex-col sm:flex-row justify-between pt-4 gap-2">
               <Button
                 variant="ghost"

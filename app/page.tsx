@@ -34,9 +34,9 @@ export default function HomePage() {
     },
     {
       icon: SearchCheck,
-      title: "Smart Search, Filters & Analytics",
+      title: "Smart Search and Filters",
       description:
-        "Find tasks instantly using search and advanced filtering. View analytics to understand progress & stay productive.",
+        "Find tasks instantly using search and advanced filtering.",
     },
     {
       icon: ArrowLeftRight,
@@ -56,7 +56,6 @@ export default function HomePage() {
     <div className="min-h-screen bg-radial from-white to-purple-50">
       <Navbar />
 
-      {/* Hero Section */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-5xl mx-auto">
           <div className="mx-auto mb-4 w-fit flex items-center border border-purple-700 shadow-sm p-4 bg-purple-100 text-purple-700 rounded-full font-bold uppercase">
@@ -121,7 +120,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section id="features" className="container mx-auto px-4 py-20">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-purple-500 mb-4">
@@ -154,7 +152,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA section */}
       <section className=" py-20">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -176,7 +173,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="py-3 border-t border-purple-200 bg-white/70">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
