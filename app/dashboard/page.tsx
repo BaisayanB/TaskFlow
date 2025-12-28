@@ -22,7 +22,7 @@ import { Board } from "@/lib/supabase/models";
 import { useUser } from "@clerk/nextjs";
 import { Filter, Plus, Search, MoreVertical } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -52,27 +52,29 @@ export default function DashboardPage() {
     color: "bg-blue-500",
   });
 
-  const filteredBoards = boards.filter((board: Board) => {
-    const matchesSearch = board.title
-      .toLowerCase()
-      .includes(filters.search.toLowerCase());
+  const filteredBoards = useMemo(() => {
+    return boards.filter((board: Board) => {
+      const matchesSearch = board.title
+        .toLowerCase()
+        .includes(filters.search.toLowerCase());
 
-    const boardDate = new Date(board.updated_at).toDateString();
+      const boardDate = new Date(board.updated_at).toDateString();
 
-    const startDate = filters.dateRange.start
-      ? new Date(filters.dateRange.start).toDateString()
-      : null;
+      const startDate = filters.dateRange.start
+        ? new Date(filters.dateRange.start).toDateString()
+        : null;
 
-    const endDate = filters.dateRange.end
-      ? new Date(filters.dateRange.end).toDateString()
-      : null;
+      const endDate = filters.dateRange.end
+        ? new Date(filters.dateRange.end).toDateString()
+        : null;
 
-    const matchesDateRange =
-      (!startDate || new Date(boardDate) >= new Date(startDate)) &&
-      (!endDate || new Date(boardDate) <= new Date(endDate));
+      const matchesDateRange =
+        (!startDate || new Date(boardDate) >= new Date(startDate)) &&
+        (!endDate || new Date(boardDate) <= new Date(endDate));
 
-    return matchesSearch && matchesDateRange;
-  });
+      return matchesSearch && matchesDateRange;
+    });
+  }, [boards, filters]);
 
   function clearFilters() {
     setFilters({
@@ -208,8 +210,8 @@ export default function DashboardPage() {
             <div className="px-1 text-purple-600">No boards yet</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 auto-rows-fr">
-              {filteredBoards.map((board, key) => (
-                <Link href={`/boards/${board.id}`} key={key}>
+              {filteredBoards.map((board) => (
+                <Link href={`/boards/${board.id}`} key={board.id}>
                   <Card className="h-full hover:shadow-lg hover:shadow-purple-200 transition-shadow cursor-pointer group border-purple-300 hover:border-purple-400">
                     <CardHeader>
                       <div className="flex items-center justify-between">
