@@ -185,11 +185,32 @@ export const taskService = {
     return data;
   },
 
+  async updateTask(
+    supabase: SupabaseClient,
+    taskId: string,
+    updates: {
+      title?: string;
+      description?: string | null;
+      due_date?: string | null;
+      priority?: "low" | "medium" | "high";
+    }
+  ): Promise<Task> {
+    const { data, error } = await supabase
+      .from("tasks")
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", taskId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
   async deleteTask(supabase: SupabaseClient, taskId: string): Promise<void> {
-    const { error } = await supabase
-    .from("tasks")
-    .delete()
-    .eq("id", taskId);
+    const { error } = await supabase.from("tasks").delete().eq("id", taskId);
 
     if (error) throw error;
   },
