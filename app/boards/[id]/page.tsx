@@ -229,7 +229,7 @@ function SortableTask({ task }: { task: Task }) {
           <div className="space-y-3">
             {/* Task Header */}
             <div className="flex items-start justify-between">
-              <h4 className="font-medium text-purple-600 text-sm leading-tight flex-1 min-w-0 pr-2">
+              <h4 className="font-medium text-purple-600 text-sm flex-1 min-w-0 pr-2">
                 {task.title}
               </h4>
             </div>
