@@ -223,7 +223,7 @@ export function useBoard(boardId: string) {
           const target = next.find((c) => c.id === newColumnId);
           if (target) {
             target.tasks.splice(newOrder, 0, movedTask);
-          } 
+          }
         }
 
         return next;
@@ -232,6 +232,52 @@ export function useBoard(boardId: string) {
       setError(err instanceof Error ? err.message : "Failed to move task.");
     }
   }
+
+  async function updateTask(
+    taskId: string,
+    updates: {
+      title?: string;
+      description?: string | null;
+      dueDate?: string | null;
+      priority?: "low" | "medium" | "high";
+    }
+  ) {
+    try {
+      const updatedTask = await taskService.updateTask(supabase!, taskId, {
+        title: updates.title,
+        description: updates.description ?? null,
+        due_date: updates.dueDate ?? null,
+        priority: updates.priority,
+      });
+
+      setColumns((prev) =>
+        prev.map((col) => ({
+          ...col,
+          tasks: col.tasks.map((task) =>
+            task.id === taskId ? updatedTask : task
+          ),
+        }))
+      );
+      return updatedTask;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update task.");
+    }
+  }
+  
+  async function deleteTask(taskId: string) {
+    try {
+      await taskService.deleteTask(supabase!, taskId);
+
+      setColumns((prev) =>
+        prev.map((col) => ({
+          ...col,
+          tasks: col.tasks.filter((task) => task.id !== taskId),
+        }))
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete task.");
+    }
+  }  
 
   async function createColumn(title: string) {
     if (!board || !user) throw new Error("Board not loaded");
@@ -260,14 +306,21 @@ export function useBoard(boardId: string) {
       );
 
       setColumns((prev) =>
-        prev.map((col) =>
-          col.id === columnId ? { ...col, ...updated } : col
-        )
+        prev.map((col) => (col.id === columnId ? { ...col, ...updated } : col))
       );
 
       return updated;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create column.");
+    }
+  }
+
+  async function deleteColumn(columnId: string) {
+    try {
+      await columnService.deleteColumn(supabase!, columnId);
+      setColumns((prev) => prev.filter((col) => col.id !== columnId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete column.");
     }
   }
 
@@ -280,7 +333,10 @@ export function useBoard(boardId: string) {
     createTask,
     reorderTask,
     moveTask,
+    updateTask,
+    deleteTask,
     createColumn,
     updateColumn,
+    deleteColumn,
   };
 }
