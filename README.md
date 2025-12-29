@@ -1,86 +1,137 @@
 # TaskFlow — A Fast, Flexible Kanban Board for Modern Workflows
 
-TaskFlow is a modern Kanban-style task management application focused on speed,
-clarity, and real-world usability. It helps individuals organize work visually
-without unnecessary complexity.
-
----
+A modern Kanban-style task management application focused on speed, clarity, and real-world usability. It helps individuals organize work visually without unnecessary complexity.
 
 ## Live Demo & Links
 
-🔗 Live Demo: https://taskflow.vercel.app  
-📦 GitHub Repository: https://github.com/your-username/taskflow  
+🔗 Live Demo: https://taskflow.vercel.app 
 
----
+## Features
 
-## Why TaskFlow?
-
-Most task management tools are either too simple to scale
-or too complex for everyday use.
-
-TaskFlow was built to strike a balance — a clean Kanban system that stays fast,
-flexible, and intuitive while handling real workflows like drag-and-drop,
-task updates, and filtering.
-
-The focus of this project was not feature quantity,
-but solid architecture, clean UX, and maintainable code.
-
----
-
-## Core Features
-
-- Create and manage multiple boards
-- Custom columns for flexible workflows
-- Drag-and-drop tasks between columns
-- Edit tasks (title, description, priority, due date)
-- Filter tasks by priority and due date
-- Responsive design for desktop and mobile
-- Secure authentication and data isolation
-- Realtime-ready backend architecture
-
----
+- **Multi-Board Management** — Create, edit, and delete multiple boards to organize different projects or workflows.
+- **Editable Columns** — Add, rename, and remove columns dynamically to match custom Kanban workflows.
+- **Drag-and-Drop Task Flow** — Smoothly reorder tasks within a column or move them across columns using an intuitive drag-and-drop interface.
+- **Comprehensive Task Editing** — Edit task title, description, priority level, and due date directly from the board view.
+- **Search & Advanced Filters** — Instantly search tasks and filter them by priority and due date for better focus and clarity.
+- **Responsive Purple-Themed UI** — Fully responsive interface with a consistent custom purple theme, optimized for desktop and mobile devices.
+- **Secure Authentication** — Email/password authentication along with Google and GitHub OAuth powered by Clerk.
+- **Supabase-Powered Backend** — PostgreSQL database with Row Level Security (RLS), realtime architecture & clean separation using custom hooks.
 
 ## Tech Stack
 
-- **Next.js (App Router)** — modern routing, performance, SEO-friendly
-- **React + TypeScript** — predictable UI logic and type safety
+- **Next.js 16 (App Router)** — modern routing, performance, SEO-friendly
+- **React 19 + TypeScript** — predictable UI logic and type safety
 - **Supabase (PostgreSQL)** — relational database with Row Level Security
 - **Clerk** — secure authentication and user management
 - **dnd-kit** — accessible, predictable drag-and-drop
-- **Tailwind CSS + shadcn/ui** — fast, consistent UI development
-
----
+- **Tailwind CSS v4 + shadcn/ui** — fast, consistent UI development
+- **Vercel** — fast, scalable deployment
 
 ## Architecture Overview
 
 TaskFlow follows a layered architecture to keep UI clean
 and business logic centralized.
 
-UI Components
-↓
-Custom Hooks (useBoard, useBoards)
-↓
-Service Layer (taskService, boardService)
-↓
-Supabase (PostgreSQL + RLS)
-
+```txt
+[ UI Components ]
+        │
+        ▼
+[ Custom Hooks ]
+(useBoard, useBoards)
+        │
+        ▼
+[ Service Layer ]
+(taskService, boardService)
+        │
+        ▼
+[ Supabase ]
+(PostgreSQL + RLS)
+```
 
 - UI components focus only on rendering
 - Hooks manage state and orchestration
 - Services handle all database interactions
 - This separation improves scalability and maintainability
 
----
+## Database Design 
 
-## Key Engineering Decisions
+```txt
+[ Boards ]
+    │
+    │ 1-to-many
+    ▼
+[ Columns ]
+    │
+    │ 1-to-many
+    ▼
+[ Tasks ]
+```
 
-- Scoped the app as a **single-user system** to focus on execution quality
-- Centralized task logic in hooks to avoid prop drilling
-- Used optimistic UI updates for smooth drag-and-drop experience
-- Avoided premature features like collaboration until core UX was solid
-- Designed the backend to be realtime-ready without overengineering
+```txt
+Boards
+ ├─ id
+ ├─ title
+ ├─ description
+ ├─ color
+ └─ user_id
 
----
+
+Columns
+ ├─ id
+ ├─ title
+ ├─ board_id  ─────────▶ Boards.id
+ ├─ sort_order
+ └─ user_id
+
+
+Tasks
+ ├─ id
+ ├─ title
+ ├─ description
+ ├─ priority
+ ├─ due_date
+ ├─ sort_order
+ └─ column_id ─────────▶ Columns.id
+```
+
+ ## 📁 Project Structure
+
+```txt
+app/
+├─ boards/
+│  └─ [id]/
+│     ├─ DroppableColumn.tsx
+│     ├─ SortableTask.tsx
+│     ├─ TaskOverlay.tsx
+│     └─ page.tsx
+│
+├─ dashboard/
+│  └─ page.tsx
+│
+├─ globals.css
+├─ layout.tsx
+└─ page.tsx
+
+components/
+├─ ui/
+├─ logo.tsx
+└─ navbar.tsx
+
+lib/
+├─ hooks/
+│  └─ useBoards.ts
+│
+├─ supabase/
+│  ├─ models.ts
+│  ├─ server.ts
+│  └─ SupabaseProvider.tsx
+│
+├─ services.ts
+└─ utils.ts
+
+.env
+proxy.ts
+```
 
 ## Data & Security
 
@@ -89,13 +140,270 @@ Supabase (PostgreSQL + RLS)
 - All reads and writes go through a controlled service layer
 - Authentication handled securely via Clerk
 
----
+## Running the Project Locally
+
+### Prerequisites
+
+- Node.js ≥ 18
+- npm or pnpm
+- Clerk account
+- Supabase account & project (PostgreSQL + RLS enabled)
+
+### Supabase SQL Statements:
+* Creates **helper function**, **tables** (`boards`, `columns`, `tasks`)
+* Adds FKs, defaults, and useful indexes
+* Enables **RLS**
+* Adds all **policies** you described
+
+```sql
+-- 0. Helper: get the requesting user's id from JWT
+
+CREATE OR REPLACE FUNCTION requesting_user_id()
+RETURNS text AS $$
+  SELECT NULLIF(
+    current_setting('request.jwt.claims', true)::json->>'sub',
+    ''
+  )::text;
+$$ LANGUAGE SQL STABLE;
+
+-- 1. Tables
+
+-- Boards
+CREATE TABLE IF NOT EXISTS public.boards (
+  id          bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  title       text NOT NULL,
+  description text,
+  color       text,
+  user_id     text NOT NULL
+);
+
+-- Columns
+CREATE TABLE IF NOT EXISTS public.columns (
+  id          bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  board_id    bigint NOT NULL REFERENCES public.boards(id) ON DELETE CASCADE,
+  title       text NOT NULL,
+  sort_order  int4 NOT NULL DEFAULT 0,
+  user_id     text NOT NULL
+);
+
+-- Tasks
+CREATE TABLE IF NOT EXISTS public.tasks (
+  id          bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  title       text NOT NULL,
+  description text,
+  due_date    date,
+  priority    text,
+  sort_order  int4 NOT NULL DEFAULT 0,
+  column_id   bigint NOT NULL REFERENCES public.columns(id) ON DELETE CASCADE
+);
+
+-- Optional: keep boards.updated_at fresh
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS trigger AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_boards_updated_at ON public.boards;
+CREATE TRIGGER trg_boards_updated_at
+BEFORE UPDATE ON public.boards
+FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+-- Helpful indexes
+CREATE INDEX IF NOT EXISTS idx_columns_board_id ON public.columns(board_id);
+CREATE INDEX IF NOT EXISTS idx_tasks_column_id  ON public.tasks(column_id);
+
+-- =========================================================
+-- 2. Enable Row Level Security
+-- =========================================================
+ALTER TABLE public.boards  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.columns ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.tasks   ENABLE ROW LEVEL SECURITY;
+
+-- =========================================================
+-- 3. Policies
+-- =========================================================
+
+--------------------------
+-- BOARDS TABLE POLICIES
+--------------------------
+
+-- View own boards
+CREATE POLICY "Users can view their own boards"
+ON public.boards
+FOR SELECT
+USING (user_id = requesting_user_id()::text);
+
+-- Insert own boards
+CREATE POLICY "Users can insert their own boards"
+ON public.boards
+FOR INSERT
+WITH CHECK (requesting_user_id() = user_id);
+
+-- Update own boards
+CREATE POLICY "Users can update their own boards"
+ON public.boards
+FOR UPDATE
+USING (user_id = requesting_user_id())
+WITH CHECK (user_id = requesting_user_id());
+
+-- Delete own boards
+CREATE POLICY "Users can delete their own boards"
+ON public.boards
+FOR DELETE
+USING (user_id = requesting_user_id());
+
+--------------------------
+-- COLUMNS TABLE POLICIES
+--------------------------
+
+-- Users can view columns from their own boards
+CREATE POLICY "Users can view columns from their own boards" ON public.columns
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.boards
+    WHERE boards.id = columns.board_id
+      AND boards.user_id = requesting_user_id()
+  )
+);
+
+-- Users can insert columns into their own boards
+CREATE POLICY "Users can insert columns into their own boards" ON public.columns
+FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.boards
+    WHERE boards.id = columns.board_id
+      AND boards.user_id = requesting_user_id()
+  )
+);
+
+-- Users can update columns from their own boards
+CREATE POLICY "Users can update columns from their own boards" ON public.columns
+FOR UPDATE USING (
+  EXISTS (
+    SELECT 1 FROM public.boards
+    WHERE boards.id = columns.board_id
+      AND boards.user_id = requesting_user_id()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.boards
+    WHERE boards.id = columns.board_id
+      AND boards.user_id = requesting_user_id()
+  )
+);
+
+-- Users can delete columns from their own boards
+CREATE POLICY "Users can delete columns from their own boards" ON public.columns
+FOR DELETE USING (
+  EXISTS (
+    SELECT 1 FROM public.boards
+    WHERE boards.id = columns.board_id
+      AND boards.user_id = requesting_user_id()
+  )
+);
+
+-----------------------
+-- TASKS TABLE POLICIES
+-----------------------
+
+-- Users can view tasks from their own boards
+CREATE POLICY "Users can view tasks from their own boards" ON public.tasks
+FOR SELECT USING (
+  EXISTS (
+    SELECT 1 FROM public.columns
+    JOIN public.boards ON boards.id = columns.board_id
+    WHERE columns.id = tasks.column_id
+      AND boards.user_id = requesting_user_id()
+  )
+);
+
+-- Users can insert tasks into their own boards
+CREATE POLICY "Users can insert tasks into their own boards" ON public.tasks
+FOR INSERT WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.columns
+    JOIN public.boards ON boards.id = columns.board_id
+    WHERE columns.id = tasks.column_id
+      AND boards.user_id = requesting_user_id()
+  )
+);
+
+-- Users can update tasks from their own boards
+CREATE POLICY "Users can update tasks from their own boards" ON public.tasks
+FOR UPDATE USING (
+  EXISTS (
+    SELECT 1 FROM public.columns
+    JOIN public.boards ON boards.id = columns.board_id
+    WHERE columns.id = tasks.column_id
+      AND boards.user_id = requesting_user_id()
+  )
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.columns
+    JOIN public.boards ON boards.id = columns.board_id
+    WHERE columns.id = tasks.column_id
+      AND boards.user_id = requesting_user_id()
+  )
+);
+
+-- Users can delete tasks from their own boards
+CREATE POLICY "Users can delete tasks from their own boards" ON public.tasks
+FOR DELETE USING (
+  EXISTS (
+    SELECT 1 FROM public.columns
+    JOIN public.boards ON boards.id = columns.board_id
+    WHERE columns.id = tasks.column_id
+      AND boards.user_id = requesting_user_id()
+  )
+);
+```
+
+### Clone and Run
+
+   ```bash
+   git clone https://github.com/BaisayanB/TaskFlow.git
+   cd TaskFlow
+   npm install --legacy-peer-deps
+   ```
+
+1. Copy `.env.example` to `.env.local` and fill in your Supabase & Clerk credentials.
+
+2. Start local Supabase emulation (optional):
+
+   ```bash
+   supabase start
+   supabase db push
+   ```
+
+3. **Run Development Server**
+   ```bash
+   npm run dev
+   ```
+
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
 
 ## Limitations & Future Improvements
 
 Current limitations:
-- Designed for single-user workflows
-- No real-time collaboration between users
+- Optimized for single-user productivity
+- Real-time collaboration intentionally excluded to keep UX fast and focused
 - No activity logs or task history
 
 Planned / possible improvements:
@@ -104,32 +412,24 @@ Planned / possible improvements:
 - Activity logs and audit history
 - Performance optimizations for large boards
 
----
+## License
 
-## What I Learned
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-- Designing scalable frontend architecture using hooks and services
-- Managing complex UI state with drag-and-drop interactions
-- Making product trade-offs instead of overbuilding features
-- Writing cleaner, more maintainable React + TypeScript code
-- Thinking beyond “just making it work” toward real usability
+## 🔗 Useful Links
 
----
+* [Next.js Docs](https://nextjs.org/docs)
+* [Supabase Docs](https://supabase.com/docs)
+* [Clerk Docs](https://clerk.com/docs)
+* [dnd-kit Docs](https://docs.dndkit.com/)
+* [Tailwind CSS Docs](https://tailwindcss.com/docs)
+* [Vercel](https://vercel.com/)
 
-## Running the Project Locally
+## Support
 
-```bash
-# Clone the repository
-git clone https://github.com/your-username/taskflow.git
+For support and questions:
 
-# Install dependencies
-npm install
-
-# Add environment variables
-cp .env.example .env.local
-
-# Start the development server
-npm run dev
-
+- Email: bbbbaisayan@gmail.com
+- Twitter: [@BBaisayan](https://x.com/BBaisayan)
 
 Built with ❤️ by  Ved
