@@ -71,10 +71,10 @@ export default function Navbar({
                   <span className="sm:hidden">Back</span>
                 </Button>
               </Link>
-              <div className="h-6 w-px bg-gray-300" />
+              <div className="self-stretch w-px bg-gray-300" />
               <div className="flex items-center space-x-2 min-w-0">
                 <Logo className="h-6 w-6 text-purple-500" />
-                <div className="items-center space-x-1 min-w-0">
+                <div className="flex items-center space-x-1 min-w-0">
                   <span className="text-lg font-bold text-gray-900 truncate">
                     {boardTitle}
                   </span>
@@ -102,7 +102,7 @@ export default function Navbar({
                   }`}
                   onClick={onFilterClick}
                 >
-                  <Filter className="h-3 w-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  <Filter className="mr-1 sm:mr-2" />
                   <span className="hidden sm:inline">Filter</span>
                   {filterCount > 0 && (
                     <Badge
