@@ -55,48 +55,7 @@ and business logic centralized.
 - Services handle all database interactions
 - This separation improves scalability and maintainability
 
-## Database Design 
-
-```txt
-[ Boards ]
-    │
-    │ 1-to-many
-    ▼
-[ Columns ]
-    │
-    │ 1-to-many
-    ▼
-[ Tasks ]
-```
-
-```txt
-Boards
- ├─ id
- ├─ title
- ├─ description
- ├─ color
- └─ user_id
-
-
-Columns
- ├─ id
- ├─ title
- ├─ board_id  ─────────▶ Boards.id
- ├─ sort_order
- └─ user_id
-
-
-Tasks
- ├─ id
- ├─ title
- ├─ description
- ├─ priority
- ├─ due_date
- ├─ sort_order
- └─ column_id ─────────▶ Columns.id
-```
-
- ## 📁 Project Structure
+## 📁 Project Structure
 
 ```txt
 app/
@@ -129,10 +88,6 @@ lib/
 │  └─ SupabaseProvider.tsx
 │
 ├─ services.ts
-└─ utils.ts
-
-.env
-proxy.ts
 ```
 
 ## Data & Security
@@ -418,19 +373,9 @@ Planned / possible improvements:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Useful Links
-
-* [Next.js Docs](https://nextjs.org/docs)
-* [Supabase Docs](https://supabase.com/docs)
-* [Clerk Docs](https://clerk.com/docs)
-* [dnd-kit Docs](https://docs.dndkit.com/)
-* [Tailwind CSS Docs](https://tailwindcss.com/docs)
-* [Vercel](https://vercel.com/)
-
 ## Support
 
 For support and questions:
-
 - Email: bbbbaisayan@gmail.com
 - Twitter: [@BBaisayan](https://x.com/BBaisayan)
 
